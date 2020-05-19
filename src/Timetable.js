@@ -6,8 +6,8 @@ const days = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobot
 
 class Timetable extends Component {
 
-    findFirstLesson(currentGroupLessons) {
-        const lessonsWithStartValue = currentGroupLessons.map(lesson => {
+    findFirstLesson(currentSubjectLessons) {
+        const lessonsWithStartValue = currentSubjectLessons.map(lesson => {
             return {
                 lesson: lesson,
                 start: moment.duration(lesson.startTime).asMinutes()
@@ -15,8 +15,8 @@ class Timetable extends Component {
         return lessonsWithStartValue.sort((lesson1, lesson2) => lesson1.start - lesson2.start)[0].lesson;
     }
 
-    findLastLesson(currentGroupLessons) {
-        const lessonsWithEndValue = currentGroupLessons.map(lesson => {
+    findLastLesson(currentSubjectLessons) {
+        const lessonsWithEndValue = currentSubjectLessons.map(lesson => {
             return {
                 lesson: lesson,
                 end: moment.duration(lesson.startTime).asMinutes() 
@@ -57,17 +57,17 @@ class Timetable extends Component {
         return <td className='hourColumn'></td>;
     }
 
-    createDayColumn(dayNumber, currentGroupLessons, currentRowHour, quarterInCurrentRow) {
-        const lessonsStartingInThisRow = currentGroupLessons
+    createDayColumn(dayNumber, currentSubjectLessons, currentRowHour, quarterInCurrentRow) {
+        const lessonsStartingInThisRow = currentSubjectLessons
             .filter(lesson => (lesson.startTime === currentRowHour) && (lesson.dayNumber === dayNumber));
         if (lessonsStartingInThisRow.length > 0) {
             return (
                 <td key={dayNumber} className='lesson' rowSpan={lessonsStartingInThisRow[0].durationInTimeWindows}>
-                    Grupa {lessonsStartingInThisRow[0].groupId}, Nauczyciel {lessonsStartingInThisRow[0].teacherId}, Kurs {lessonsStartingInThisRow[0].courseId}
+                    Grupa {lessonsStartingInThisRow[0].groupId}, Nauczyciel {lessonsStartingInThisRow[0].teacherId}, Kurs {lessonsStartingInThisRow[0].courseId}, Klasa {lessonsStartingInThisRow[0].roomNumber}
                 </td>
             );
         }
-        const lessonsWithEndHours = currentGroupLessons.map(lesson => {
+        const lessonsWithEndHours = currentSubjectLessons.map(lesson => {
             return {
                 lesson: lesson,
                 endHour: moment.utc(lesson.startTime, 'HH:mm')
@@ -91,7 +91,7 @@ class Timetable extends Component {
         return (<td key={dayNumber} className='quarterHourBelow'></td>);
     }
 
-    createTableRow(rowNumber, firstHour, startingNumberOfQuarters, currentGroupLessons) {
+    createTableRow(rowNumber, firstHour, startingNumberOfQuarters, currentSubjectLessons) {
         const currentRowHour = firstHour.clone()
             .add(rowNumber * this.props.timetableData.timeWindowDurationInMinutes, 'minutes')
             .format('HH:mm');
@@ -102,30 +102,46 @@ class Timetable extends Component {
                 <td className='separatorColumn'></td>
                 {
                     [...Array(this.props.timetableData.numberOfDaysInWeek).keys()]
-                        .map(dayNumber => this.createDayColumn(dayNumber, currentGroupLessons, currentRowHour, quarterInCurrentRow))
+                        .map(dayNumber => this.createDayColumn(dayNumber, currentSubjectLessons, currentRowHour, quarterInCurrentRow))
                 }
             </tr>
         );
     }
 
-    findEarliestHour(currentGroupLessons) {
-        const firstLesson = this.findFirstLesson(currentGroupLessons);
+    findEarliestHour(currentSubjectLessons) {
+        const firstLesson = this.findFirstLesson(currentSubjectLessons);
         return moment
             .duration(firstLesson.startTime)
             .subtract(this.props.timetableData.timeWindowDurationInMinutes, 'minutes');
     }
 
-    findLatestHour(currentGroupLessons) {
-        const lastLesson = this.findLastLesson(currentGroupLessons);
+    findLatestHour(currentSubjectLessons) {
+        const lastLesson = this.findLastLesson(currentSubjectLessons);
         return moment
             .duration(lastLesson.startTime)
             .add(this.props.timetableData.timeWindowDurationInMinutes * (lastLesson.durationInTimeWindows + 1), 'minutes');
     }
 
+    getCurrentSubjectLessons() {
+        if (this.props.subject === 'group') {
+            return this.props.timetableData.lessons.filter(lesson => lesson.groupId === this.props.subjectId);
+        }
+        if (this.props.subject === 'teacher') {
+            return this.props.timetableData.lessons.filter(lesson => lesson.teacherId === this.props.subjectId);
+        }
+        if (this.props.subject === 'room') {
+            return this.props.timetableData.lessons.filter(lesson => lesson.roomId === this.props.subjectId);
+        }
+        return null;
+    }
+
     createTableBody() {
-        const currentGroupLessons = this.props.timetableData.lessons.filter(lesson => lesson.groupId === this.props.subjectId);
-        const earliestTime = this.findEarliestHour(currentGroupLessons);
-        const latestTime = this.findLatestHour(currentGroupLessons);
+        const currentSubjectLessons = this.getCurrentSubjectLessons();
+        if (currentSubjectLessons === null) {
+            return null;
+        }
+        const earliestTime = this.findEarliestHour(currentSubjectLessons);
+        const latestTime = this.findLatestHour(currentSubjectLessons);
         const numberOfTableRows = (latestTime.asMinutes() - earliestTime.asMinutes()) / this.props.timetableData.timeWindowDurationInMinutes;
         const firstHour = moment.utc(earliestTime.asMilliseconds());
         const startingNumberOfQuarters = earliestTime.asMinutes() / 15;
@@ -133,7 +149,7 @@ class Timetable extends Component {
             <tbody>
                 {
                     [...Array(numberOfTableRows).keys()]
-                        .map(rowNumber => this.createTableRow(rowNumber, firstHour, startingNumberOfQuarters, currentGroupLessons))
+                        .map(rowNumber => this.createTableRow(rowNumber, firstHour, startingNumberOfQuarters, currentSubjectLessons))
                 }
             </tbody>
         );
