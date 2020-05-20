@@ -1,0 +1,12 @@
+.timetablesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.subjectTitle {
+    font-size: 3em;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    text-align: center;
+}

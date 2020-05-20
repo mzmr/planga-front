@@ -63,7 +63,7 @@ class Timetable extends Component {
         if (lessonsStartingInThisRow.length > 0) {
             return (
                 <td key={dayNumber} className='lesson' rowSpan={lessonsStartingInThisRow[0].durationInTimeWindows}>
-                    Grupa {lessonsStartingInThisRow[0].groupId}, Nauczyciel {lessonsStartingInThisRow[0].teacherId}, Kurs {lessonsStartingInThisRow[0].courseId}, Klasa {lessonsStartingInThisRow[0].roomNumber}
+                    Grupa {lessonsStartingInThisRow[0].groupId}, Nauczyciel {lessonsStartingInThisRow[0].teacherId}, Kurs {lessonsStartingInThisRow[0].courseId}, Sala {lessonsStartingInThisRow[0].roomNumber}
                 </td>
             );
         }
@@ -130,7 +130,7 @@ class Timetable extends Component {
             return this.props.timetableData.lessons.filter(lesson => lesson.teacherId === this.props.subjectId);
         }
         if (this.props.subject === 'room') {
-            return this.props.timetableData.lessons.filter(lesson => lesson.roomId === this.props.subjectId);
+            return this.props.timetableData.lessons.filter(lesson => lesson.roomNumber === this.props.subjectId);
         }
         return null;
     }

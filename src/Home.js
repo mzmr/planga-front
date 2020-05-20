@@ -29,9 +29,38 @@ class Home extends Component {
         if (this.state.timetableData === null) {
             return 'Loading...';
         }
+        const groupIdsWithDuplicates = this.state.timetableData.lessons.map(lesson => lesson.groupId);
+        const groupIds = [...new Set(groupIdsWithDuplicates)].sort();
+        const teacherIdsWithDuplicates = this.state.timetableData.lessons.map(lesson => lesson.teacherId);
+        const teacherIds = [...new Set(teacherIdsWithDuplicates)].sort();
+        const roomIdsWithDuplicates = this.state.timetableData.lessons.map(lesson => lesson.roomNumber);
+        const roomIds = [...new Set(roomIdsWithDuplicates)].sort();
         return (
-            <Container>
-                <Timetable timetableData={this.state.timetableData} subject='group' subjectId={3} />
+            <Container className='timetablesContainer'>
+                {
+                    groupIds.map(groupId =>
+                        <div key={groupId}>
+                            <div className='subjectTitle'>{`Grupa ${groupId}`}</div>
+                            <Timetable timetableData={this.state.timetableData} subject='group' subjectId={groupId} />
+                        </div>
+                    )
+                }
+                {
+                    teacherIds.map(teacherId =>
+                        <div key={teacherId}>
+                            <div className='subjectTitle'>{`Nauczyciel ${teacherId}`}</div>
+                            <Timetable timetableData={this.state.timetableData} subject='teacher' subjectId={teacherId} />
+                        </div>
+                    )
+                }
+                {
+                    roomIds.map(roomId =>
+                        <div key={roomId}>
+                            <div className='subjectTitle'>{`Sala ${roomId}`}</div>
+                            <Timetable timetableData={this.state.timetableData} subject='room' subjectId={roomId} />
+                        </div>
+                    )
+                }
             </Container>
         );
     }
