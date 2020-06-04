@@ -61,9 +61,19 @@ class Timetable extends Component {
         const lessonsStartingInThisRow = currentSubjectLessons
             .filter(lesson => (lesson.startTime === currentRowHour) && (lesson.dayNumber === dayNumber));
         if (lessonsStartingInThisRow.length > 0) {
+            const lesson = lessonsStartingInThisRow[0];
+            let groupNumber = '';
+
+            if (lesson.groupType === 'LECTURE') {
+                groupNumber = `${lesson.lectureGroupId}.*.*`;
+            } else if (lesson.groupType === 'AUDITORY') {
+                groupNumber = `${lesson.lectureGroupId}.${lesson.auditoryGroupId}.*`;
+            } else {
+                groupNumber = `${lesson.lectureGroupId}.${lesson.auditoryGroupId}.${lesson.laboratoryGroupId}`;
+            }
             return (
-                <td key={dayNumber} className='lesson' rowSpan={lessonsStartingInThisRow[0].durationInTimeWindows}>
-                    Grupa {lessonsStartingInThisRow[0].groupId}, Nauczyciel {lessonsStartingInThisRow[0].teacherId}, Kurs {lessonsStartingInThisRow[0].courseId}, Sala {lessonsStartingInThisRow[0].roomNumber}
+                <td key={dayNumber} className={`lesson ${lesson.groupType}`} rowSpan={lesson.durationInTimeWindows}>
+                    Grupa {groupNumber}, Nauczyciel {lesson.teacherId}, Kurs {lesson.courseId}, Sala {lesson.roomNumber}
                 </td>
             );
         }
@@ -124,7 +134,19 @@ class Timetable extends Component {
 
     getCurrentSubjectLessons() {
         if (this.props.subject === 'group') {
-            return this.props.timetableData.lessons.filter(lesson => lesson.groupId === this.props.subjectId);
+            return this.props.timetableData.lessons.filter(lesson => 
+                lesson.lectureGroupId === this.props.laboratoryTuple.lecture &&
+                (
+                    lesson.auditoryGroupId === -1 ||
+                    (
+                        lesson.auditoryGroupId === this.props.laboratoryTuple.auditory &&
+                        (
+                            lesson.laboratoryGroupId === -1 || 
+                            lesson.laboratoryGroupId === this.props.laboratoryTuple.laboratory
+                        )
+                    )
+                )
+            );
         }
         if (this.props.subject === 'teacher') {
             return this.props.timetableData.lessons.filter(lesson => lesson.teacherId === this.props.subjectId);

@@ -19,6 +19,18 @@ td.lesson {
     border: 2px solid #555555;
 }
 
+td.lesson.LECTURE {
+    background: #e1efff;
+}
+
+td.lesson.AUDITORY {
+    background: #e1ffe1;
+}
+
+td.lesson.LABORATORY {
+    background: #ffe1e1;
+}
+
 td.cellWithHour {
     text-align: end;
 }
